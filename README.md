@@ -15,7 +15,8 @@ It communicates with the external world (e.g. Arduino) through the Serial port
 
 To build the firmware for ESP-01 use arduino IDE and follow the instruction reported in https://github.com/esp8266/Arduino.
 
-To flash the firmware iit must be used a USB-Serial coonverter (e.g. https://www.arduino.cc/en/Main/USBSerial). See docs for pin connections.
+To flash the firmware iit must be used a USB-Serial coonverter (e.g. https://www.arduino.cc/en/Main/USBSerial).
+![](images/flash-wiring.png)
 
 **ESP_SERIAL_ARDUINO**
 
