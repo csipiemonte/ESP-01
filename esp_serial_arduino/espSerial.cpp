@@ -29,44 +29,48 @@ boolean espSerial::setWifi(String sid, String psk) {
 
 
 boolean espSerial::sslGet(String& body, String host, unsigned int port, String url, String user = "", String pwd = "") {
+  boolean ret=true;
   serial->print((String) "SSLGET " + host + "," + port + "," + url + "," + user + "," + pwd+"\n");
 
   if (!waitForDone())
-    return false;
+    ret=false;
   body="";
   while (true) {
     String line = serial->readStringUntil('\n');
     if (line==".\r") {
-      return body;
+      return ret;
     } else {
       body = body+line+"\n";
     }
 
   }
+  return ret;
 
 }
 boolean espSerial::sslPost(String& body, String host, unsigned int port, String url, String data, String user = "", String pwd = "") {
+  boolean ret=true;
   serial->print((String) "SSLPOST " + host + "," + port + "," + url + "," + user + "," + pwd+","+data+"\r");
-
+   
   if (!waitForDone())
-    return false;
+    ret=false;
   body="";
   while (true) {
     String line = serial->readStringUntil('\n');
     if (line==".\r") {
-      return body;
+      return ret;
     } else {
       body = body+line+"\n";
     }
 
   }
+  return ret;
 
 }
 
 boolean espSerial::waitForDone() {
   while (true) {
     String line = serial->readStringUntil('\n');
-    //Serial.println(line);
+    Serial.println(line);
     if (line.startsWith("DONE")) {
       String param[3];
       char lineBuf[MAXBUFSZIE];

@@ -1,12 +1,11 @@
-#define DEBUG_HTTPCLIENT(...) Serial.printf( __VA_ARGS__ )
+
 #include <ESP8266WiFi.h>
-//#include <WiFiClientSecure.h>
 #include <ESP8266httpClient.h>
 
 #include "b64.h"
 
-#define MAXCMDSZIE 256
-#define MAXARGSIZE 128
+#define MAXCMDSZIE 512
+#define MAXARGSIZE 512
 #define MAXPARAMS 10
 #define TIMEOUT 10
 #define _DEBUG_
@@ -117,13 +116,7 @@ void sslGetPost(String* p) {
   httpClient http;
 
   sendStartCmd();
-  /*
-    WiFiClientSecure client;
-    if (!client.connect(p[0].c_str(), p[1].toInt())) {
-      sendStatus(SSLCONNECTERR);
-      return;
-    }
-  */
+
   http.begin(p[0], p[1].toInt(), p[2], true, "");
   //http.begin(p[0], p[1].toInt(), p[2]);
   if (p[5] != "")
@@ -132,19 +125,23 @@ void sslGetPost(String* p) {
     String auth = p[3] + ":" + p[4];
     byte authSize = auth.length();
     byte authSize64 = authSize * 4 / 3;
+    authSize64 += authSize64 % 4;
     auth64 = (byte*) malloc(sizeof(byte) * authSize64 + 1);
     b64_encode((byte*)auth.c_str(), authSize, auth64, authSize64);
     auth64[authSize64] = '\0';
     http.addHeader("Authorization", (String)"Basic " + (const char*)auth64);
+
   }
+  http.addHeader("Content-Type", "application/json");
   http.addHeader("Connection", "close");
+
 
   if (post) {
     httpstatus = http.POST(p[5]);
   } else {
     httpstatus = http.GET();
   }
-  if (httpstatus != 200) {
+  if (httpstatus >= 300) {
     if (httpstatus == HTTPC_ERROR_CONNECTION_REFUSED)
       sendStatus(SSLCONNECTERR);
     else
@@ -154,54 +151,6 @@ void sslGetPost(String* p) {
   }
   sendLine(http.getString());
   sendEndOfData();
-  /*
-    client.print(String("POST ") + p[2] + " HTTP/1.1\r\n" +
-               "Host: " + p[0] + "\r\n");
-    if (p[3] != "") {
-    client.print((String)"Authorization: Basic " + (const char*)auth64 + "\r\n");
-    }
-    if (post)
-    client.print((String)"Content-Length: " + p[5].length() + "\r\n");
-    client.print((String)"User-Agent: ESP-01\r\n\r\n");
-    if (post)
-    client.print(p[5]);
-    //"Connection: close\r\n\r\n");
-
-    debug("Request sent");
-
-    while (client.connected()) {
-    String line = client.readStringUntil('\n');
-    debug(line);
-    if (header) {
-      //Check HTTP status code
-      if (line.startsWith("HTTP/1.1")) {
-        int httpstatus = line.substring(9, 12).toInt();
-        if (httpstatus != 200) {
-          //sendStatus(SSLGETERR);
-          httperr = true;
-          //client.stop();
-          //return;
-        }
-
-      }
-      if (line == "\r") {
-        debug("headers received");
-        header = false;
-        if (httperr)
-          sendStatus(SSLGETERR);
-        else
-          sendStatus(CMDOK);
-      }
-    } else {
-      sendLine(line);
-    }
-
-
-    //sendProgressCmd();
-    }
-    client.stop();
-    sendEndOfData();
-  */
 
 }
 
